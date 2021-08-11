@@ -9,11 +9,12 @@ bl_info = {
     "support": "COMMUNITY",
     "wiki_url": "",
     "tracker_url": "",
-    "category": "Rigging"
+    "category": "Rigging",
 }
 
 if "bpy" in locals():
     import imp
+
     imp.reload(rigidBodyGen)
     imp.reload(AddBones)
 else:
@@ -23,11 +24,11 @@ else:
 import bpy
 
 
-
 # クラスの登録
 def register():
     rigidBodyGen.register()
     AddBones.register()
+
 
 # クラスの登録解除
 def unregister():

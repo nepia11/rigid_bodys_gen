@@ -1,6 +1,8 @@
 import bpy
-import time, sys
-from bpy.props import *
+
+# import time
+import sys
+from bpy.props import FloatVectorProperty, FloatProperty, BoolProperty, EnumProperty
 
 
 bl_info = {
@@ -14,309 +16,324 @@ bl_info = {
     "support": "COMMUNITY",
     "wiki_url": "",
     "tracker_url": "",
-    "category": "Rigging"
+    "category": "Rigging",
 }
 
 translation_dict = {
-    "en_US" : {
-        ("*", "Make Rigid Body Tools") : "Make Rigid Body Tools",
-        #("*", "Rigid Body Gen") : "Rigid Body Gen",
-        ("*", "Make Rigid Bodys") : "Make Rigid Bodys",
-        ("*", "Add Passive(on bones)") : "Add Passive(on bones)",
-        ("*", "make rigibodys move on bones") : "make rigibodys move on bones",
-        ("*", "Add Active") : "Add Active",
-        ("*", "Add Joints") : "Add Joints",
-        ("*", "Add Active & Joints") : "Add Active & Joints"
+    "en_US": {
+        ("*", "Make Rigid Body Tools"): "Make Rigid Body Tools",
+        # ("*", "Rigid Body Gen") : "Rigid Body Gen",
+        ("*", "Make Rigid Bodys"): "Make Rigid Bodys",
+        ("*", "Add Passive(on bones)"): "Add Passive(on bones)",
+        ("*", "make rigibodys move on bones"): "make rigibodys move on bones",
+        ("*", "Add Active"): "Add Active",
+        ("*", "Add Joints"): "Add Joints",
+        ("*", "Add Active & Joints"): "Add Active & Joints",
     },
-    "ja_JP" : {
-        ("*", "Make Rigid Body Tools") : "選択ボーン",
-        #("*", "Rigid Body Gen") : "剛体ツール",
-        ("*", "Make Rigid Bodys") : "選択ボーン",
-        ("*", "Add Passive(on bones)") : "基礎剛体の作成‐ボーン追従",
-        ("*", "make rigibodys move on bones") : "ボーンに追従する剛体を作成します",
-        ("*", "Add Active") : "基礎剛体の作成‐物理演算",
-        ("*", "Add Joints") : "基礎Jointの作成",
-        ("*", "Add Active & Joints") : "基礎剛体／連結Jointの作成"
-    }
+    "ja_JP": {
+        ("*", "Make Rigid Body Tools"): "選択ボーン",
+        # ("*", "Rigid Body Gen") : "剛体ツール",
+        ("*", "Make Rigid Bodys"): "選択ボーン",
+        ("*", "Add Passive(on bones)"): "基礎剛体の作成‐ボーン追従",
+        ("*", "make rigibodys move on bones"): "ボーンに追従する剛体を作成します",
+        ("*", "Add Active"): "基礎剛体の作成‐物理演算",
+        ("*", "Add Joints"): "基礎Jointの作成",
+        ("*", "Add Active & Joints"): "基礎剛体／連結Jointの作成",
+    },
 }
 
 shapes = [
-        ('MESH', 'Mesh', 'Mesh'),
-        ('CONVEX_HULL', 'Convex Hull', 'Convex Hull'),
-        ('CONE', 'Cone', 'Cone'),
-        ('CYLINDER', 'Cylinder', 'Cylinder'),
-        ('CAPSULE', 'Capsule', 'Capsule'),
-        ('SPHERE', 'Sphere', 'Sphere'),
-        ('BOX', 'Box', 'Box')]
+    ("MESH", "Mesh", "Mesh"),
+    ("CONVEX_HULL", "Convex Hull", "Convex Hull"),
+    ("CONE", "Cone", "Cone"),
+    ("CYLINDER", "Cylinder", "Cylinder"),
+    ("CAPSULE", "Capsule", "Capsule"),
+    ("SPHERE", "Sphere", "Sphere"),
+    ("BOX", "Box", "Box"),
+]
 
-types = [('MOTOR', 'Motor', 'Motor'),
-            ('GENERIC_SPRING', 'Generic Spring', 'Generic Spring'),
-            ('GENERIC', 'Generic', 'Generic')]
+types = [
+    ("MOTOR", "Motor", "Motor"),
+    ("GENERIC_SPRING", "Generic Spring", "Generic Spring"),
+    ("GENERIC", "Generic", "Generic"),
+]
+
 
 ### add Tool Panel
 class RBG_PT_MenuRigidBodyTools(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_category = "Rigid Body Gen"
     bl_context = ".posemode"
     bl_label = "Make Rigid Body Tools"
 
-
     @classmethod
     def poll(cls, context):
-        return (context.object is not None)
+        return context.object is not None
 
     def draw(self, context):
         pass
 
+
 class RBG_PT_Add_Passive(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_category = "Rigid Body Gen"
     bl_context = ".posemode"
     bl_label = "Add Passive(on bones)"
     bl_parent_id = "RBG_PT_MenuRigidBodyTools"
-    bl_options = {'DEFAULT_CLOSED'}
-
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.operator(RBG_OT_CreateRigidBodysOnBones.bl_idname, text=bpy.app.translations.pgettext("Add Passive(on bones)"), icon='BONE_DATA')
+        col.operator(
+            RBG_OT_CreateRigidBodysOnBones.bl_idname,
+            text=bpy.app.translations.pgettext("Add Passive(on bones)"),
+            icon="BONE_DATA",
+        )
 
         scene = context.scene
 
         layout = self.layout
         box = layout.box()
         box.label(text="Options:")
-        box.prop(scene, 'rbg_rb_shape')
-        box.prop(scene, 'rbg_rc_dim')
-        box.prop(scene, 'rbg_rc_mass')
-        box.prop(scene, 'rbg_rc_friction')
-        box.prop(scene, 'rbg_rc_bounciness')
+        box.prop(scene, "rbg_rb_shape")
+        box.prop(scene, "rbg_rc_dim")
+        box.prop(scene, "rbg_rc_mass")
+        box.prop(scene, "rbg_rc_friction")
+        box.prop(scene, "rbg_rc_bounciness")
         box.label(text="Damping:")
-        box.prop(scene, 'rbg_rc_translation')
-        box.prop(scene, 'rbg_rc_rotation')
-        box.prop(scene, 'rbg_rc_rootbody_passive')
-        box.prop(scene, 'rbg_rc_rootbody_animated')
-        box.prop(scene, 'rbg_rc_parent_armature')
+        box.prop(scene, "rbg_rc_translation")
+        box.prop(scene, "rbg_rc_rotation")
+        box.prop(scene, "rbg_rc_rootbody_passive")
+        box.prop(scene, "rbg_rc_rootbody_animated")
+        box.prop(scene, "rbg_rc_parent_armature")
+
 
 class RBG_PT_Add_Active(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_category = "Rigid Body Gen"
     bl_context = ".posemode"
     bl_label = "Add Active"
     bl_parent_id = "RBG_PT_MenuRigidBodyTools"
-    bl_options = {'DEFAULT_CLOSED'}
-
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.operator(RBG_OT_CreateRigidBodysPhysics.bl_idname, text=bpy.app.translations.pgettext("Add Active"), icon='PHYSICS')
+        col.operator(
+            RBG_OT_CreateRigidBodysPhysics.bl_idname,
+            text=bpy.app.translations.pgettext("Add Active"),
+            icon="PHYSICS",
+        )
 
         scene = context.scene
         layout = self.layout
         box = layout.box()
         box.label(text="Options:")
-        box.prop(scene, 'rbg_rb_shape')
-        box.prop(scene, 'rbg_rc_dim')
-        box.prop(scene, 'rbg_rc_mass')
-        box.prop(scene, 'rbg_rc_friction')
-        box.prop(scene, 'rbg_rc_bounciness')
-        box.prop(scene, 'rbg_rc_translation')
-        box.prop(scene, 'rbg_rc_rotation')
-        box.prop(scene, 'rbg_rc_rootbody_animated')
-        box.prop(scene, 'rbg_rc_parent_armature')
+        box.prop(scene, "rbg_rb_shape")
+        box.prop(scene, "rbg_rc_dim")
+        box.prop(scene, "rbg_rc_mass")
+        box.prop(scene, "rbg_rc_friction")
+        box.prop(scene, "rbg_rc_bounciness")
+        box.prop(scene, "rbg_rc_translation")
+        box.prop(scene, "rbg_rc_rotation")
+        box.prop(scene, "rbg_rc_rootbody_animated")
+        box.prop(scene, "rbg_rc_parent_armature")
+
 
 class RBG_PT_Add_Joints(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_category = "Rigid Body Gen"
     bl_context = ".posemode"
     bl_label = "Add Joints"
     bl_parent_id = "RBG_PT_MenuRigidBodyTools"
-    bl_options = {'DEFAULT_CLOSED'}
-
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.operator(RBG_OT_CreateRigidBodysJoints.bl_idname, text=bpy.app.translations.pgettext("Add Joints"), icon='RIGID_BODY_CONSTRAINT')
+        col.operator(
+            RBG_OT_CreateRigidBodysJoints.bl_idname,
+            text=bpy.app.translations.pgettext("Add Joints"),
+            icon="RIGID_BODY_CONSTRAINT",
+        )
 
         scene = context.scene
         layout = self.layout
         box = layout.box()
         box.label(text="Options:")
-        box.prop(scene, 'rbg_jo_type')
-        box.prop(scene, 'rbg_jo_dim')
-
+        box.prop(scene, "rbg_jo_type")
+        box.prop(scene, "rbg_jo_dim")
 
         col = box.column(align=True)
         col.label(text="Limits:")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_x', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_x_lower')
-        sub.prop(scene, 'rbg_jo_limit_lin_x_upper')
+        sub.prop(scene, "rbg_jo_limit_lin_x", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_lin_x_lower")
+        sub.prop(scene, "rbg_jo_limit_lin_x_upper")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_y', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_y_lower')
-        sub.prop(scene, 'rbg_jo_limit_lin_y_upper')
+        sub.prop(scene, "rbg_jo_limit_lin_y", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_lin_y_lower")
+        sub.prop(scene, "rbg_jo_limit_lin_y_upper")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_z', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_z_lower')
-        sub.prop(scene, 'rbg_jo_limit_lin_z_upper')
+        sub.prop(scene, "rbg_jo_limit_lin_z", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_lin_z_lower")
+        sub.prop(scene, "rbg_jo_limit_lin_z_upper")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_x', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_x_lower')
-        sub.prop(scene, 'rbg_jo_limit_ang_x_upper')
+        sub.prop(scene, "rbg_jo_limit_ang_x", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_ang_x_lower")
+        sub.prop(scene, "rbg_jo_limit_ang_x_upper")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_y', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_y_lower')
-        sub.prop(scene, 'rbg_jo_limit_ang_y_upper')
+        sub.prop(scene, "rbg_jo_limit_ang_y", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_ang_y_lower")
+        sub.prop(scene, "rbg_jo_limit_ang_y_upper")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_z', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_z_lower')
-        sub.prop(scene, 'rbg_jo_limit_ang_z_upper')
-
+        sub.prop(scene, "rbg_jo_limit_ang_z", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_ang_z_lower")
+        sub.prop(scene, "rbg_jo_limit_ang_z_upper")
 
         col.label(text="Springs:")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_use_spring_x', toggle=True)
-        sub.prop(scene, 'rbg_jo_spring_stiffness_x')
-        sub.prop(scene, 'rbg_jo_spring_damping_x')
+        sub.prop(scene, "rbg_jo_use_spring_x", toggle=True)
+        sub.prop(scene, "rbg_jo_spring_stiffness_x")
+        sub.prop(scene, "rbg_jo_spring_damping_x")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_use_spring_y', toggle=True)
-        sub.prop(scene, 'rbg_jo_spring_stiffness_y')
-        sub.prop(scene, 'rbg_jo_spring_damping_y')
+        sub.prop(scene, "rbg_jo_use_spring_y", toggle=True)
+        sub.prop(scene, "rbg_jo_spring_stiffness_y")
+        sub.prop(scene, "rbg_jo_spring_damping_y")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_use_spring_z', toggle=True)
-        sub.prop(scene, 'rbg_jo_spring_stiffness_z')
-        sub.prop(scene, 'rbg_jo_spring_damping_z')
+        sub.prop(scene, "rbg_jo_use_spring_z", toggle=True)
+        sub.prop(scene, "rbg_jo_spring_stiffness_z")
+        sub.prop(scene, "rbg_jo_spring_damping_z")
 
-        col.prop(scene, 'rbg_rc_parent_armature')
-        
+        col.prop(scene, "rbg_rc_parent_armature")
+
 
 class RBG_PT_Add_Active_Joints(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_category = "Rigid Body Gen"
     bl_context = ".posemode"
     bl_label = "Add Active & Joints"
     bl_parent_id = "RBG_PT_MenuRigidBodyTools"
-    bl_options = {'DEFAULT_CLOSED'}
-
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.operator(RBG_OT_CreateRigidBodysPhysicsJoints.bl_idname, text=bpy.app.translations.pgettext("Add Active & Joints"), icon='RIGID_BODY')
+        col.operator(
+            RBG_OT_CreateRigidBodysPhysicsJoints.bl_idname,
+            text=bpy.app.translations.pgettext("Add Active & Joints"),
+            icon="RIGID_BODY",
+        )
 
         scene = context.scene
-        ###Rigid Body Object
+        ### Rigid Body Object
         layout = self.layout
 
         box = layout.box()
         box.label(text="Options:")
-        box.prop(scene, 'rbg_rb_shape')
-        box.prop(scene, 'rbg_rc_dim')
-        box.prop(scene, 'rbg_rc_mass')
-        box.prop(scene, 'rbg_rc_friction')
-        box.prop(scene, 'rbg_rc_bounciness')
-        box.prop(scene, 'rbg_rc_translation')
-        box.prop(scene, 'rbg_rc_rotation')
+        box.prop(scene, "rbg_rb_shape")
+        box.prop(scene, "rbg_rc_dim")
+        box.prop(scene, "rbg_rc_mass")
+        box.prop(scene, "rbg_rc_friction")
+        box.prop(scene, "rbg_rc_bounciness")
+        box.prop(scene, "rbg_rc_translation")
+        box.prop(scene, "rbg_rc_rotation")
 
-
-        #Joint Object
+        # Joint Object
         layout = self.layout
         box = layout.box()
-        box.prop(scene, 'rbg_jo_type')
-        box.prop(scene, 'rbg_jo_constraint_object')
-        box.prop(scene, 'rbg_rc_add_pole_rootbody')
-        box.prop(scene, 'rbg_rc_parent_armature')
-        box.prop(scene, 'rbg_jo_dim')
+        box.prop(scene, "rbg_jo_type")
+        box.prop(scene, "rbg_jo_constraint_object")
+        box.prop(scene, "rbg_rc_add_pole_rootbody")
+        box.prop(scene, "rbg_rc_parent_armature")
+        box.prop(scene, "rbg_jo_dim")
 
         col = box.column(align=True)
         col.label(text="Limits:")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_x', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_x_lower')
-        sub.prop(scene, 'rbg_jo_limit_lin_x_upper')
+        sub.prop(scene, "rbg_jo_limit_lin_x", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_lin_x_lower")
+        sub.prop(scene, "rbg_jo_limit_lin_x_upper")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_y', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_y_lower')
-        sub.prop(scene, 'rbg_jo_limit_lin_y_upper')
+        sub.prop(scene, "rbg_jo_limit_lin_y", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_lin_y_lower")
+        sub.prop(scene, "rbg_jo_limit_lin_y_upper")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_z', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_lin_z_lower')
-        sub.prop(scene, 'rbg_jo_limit_lin_z_upper')
+        sub.prop(scene, "rbg_jo_limit_lin_z", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_lin_z_lower")
+        sub.prop(scene, "rbg_jo_limit_lin_z_upper")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_x', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_x_lower')
-        sub.prop(scene, 'rbg_jo_limit_ang_x_upper')
+        sub.prop(scene, "rbg_jo_limit_ang_x", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_ang_x_lower")
+        sub.prop(scene, "rbg_jo_limit_ang_x_upper")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_y', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_y_lower')
-        sub.prop(scene, 'rbg_jo_limit_ang_y_upper')
+        sub.prop(scene, "rbg_jo_limit_ang_y", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_ang_y_lower")
+        sub.prop(scene, "rbg_jo_limit_ang_y_upper")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_z', toggle=True)
-        sub.prop(scene, 'rbg_jo_limit_ang_z_lower')
-        sub.prop(scene, 'rbg_jo_limit_ang_z_upper')
+        sub.prop(scene, "rbg_jo_limit_ang_z", toggle=True)
+        sub.prop(scene, "rbg_jo_limit_ang_z_lower")
+        sub.prop(scene, "rbg_jo_limit_ang_z_upper")
 
         col.label(text="Springs:")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_use_spring_x', toggle=True)
-        sub.prop(scene, 'rbg_jo_spring_stiffness_x')
-        sub.prop(scene, 'rbg_jo_spring_damping_x')
+        sub.prop(scene, "rbg_jo_use_spring_x", toggle=True)
+        sub.prop(scene, "rbg_jo_spring_stiffness_x")
+        sub.prop(scene, "rbg_jo_spring_damping_x")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_use_spring_y', toggle=True)
-        sub.prop(scene, 'rbg_jo_spring_stiffness_y')
-        sub.prop(scene, 'rbg_jo_spring_damping_y')
+        sub.prop(scene, "rbg_jo_use_spring_y", toggle=True)
+        sub.prop(scene, "rbg_jo_spring_stiffness_y")
+        sub.prop(scene, "rbg_jo_spring_damping_y")
 
         row = col.row(align=True)
         sub = row.row(align=True)
-        sub.prop(scene, 'rbg_jo_use_spring_z', toggle=True)
-        sub.prop(scene, 'rbg_jo_spring_stiffness_z')
-        sub.prop(scene, 'rbg_jo_spring_damping_z')
+        sub.prop(scene, "rbg_jo_use_spring_z", toggle=True)
+        sub.prop(scene, "rbg_jo_spring_stiffness_z")
+        sub.prop(scene, "rbg_jo_spring_damping_z")
 
 
 ### add MainMenu
@@ -327,16 +344,19 @@ class RBG_MT_MenuRigidBodys(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(RBG_OT_CreateRigidBodysOnBones.bl_idname, icon='BONE_DATA')
-        layout.operator(RBG_OT_CreateRigidBodysPhysics.bl_idname, icon='PHYSICS')
-        layout.operator(RBG_OT_CreateRigidBodysJoints.bl_idname, icon='RIGID_BODY_CONSTRAINT')
-        layout.operator(RBG_OT_CreateRigidBodysPhysicsJoints.bl_idname, icon='RIGID_BODY')
+        layout.operator(RBG_OT_CreateRigidBodysOnBones.bl_idname, icon="BONE_DATA")
+        layout.operator(RBG_OT_CreateRigidBodysPhysics.bl_idname, icon="PHYSICS")
+        layout.operator(
+            RBG_OT_CreateRigidBodysJoints.bl_idname, icon="RIGID_BODY_CONSTRAINT"
+        )
+        layout.operator(
+            RBG_OT_CreateRigidBodysPhysicsJoints.bl_idname, icon="RIGID_BODY"
+        )
 
     # add menu
     def menu_fn(self, context):
         self.layout.separator()
-        self.layout.menu(self.bl_idname, icon='MESH_ICOSPHERE')
-
+        self.layout.menu(self.bl_idname, icon="MESH_ICOSPHERE")
 
     @classmethod
     def register(cls):
@@ -348,270 +368,265 @@ class RBG_MT_MenuRigidBodys(bpy.types.Menu):
         bpy.types.VIEW3D_MT_pose.remove(cls.menu_fn)
         bpy.app.translations.unregister(__name__)
 
+
 ### user prop
 def user_props():
     scene = bpy.types.Scene
 
     scene.rbg_rb_shape = EnumProperty(
-        name='Shape',
-        description='Choose Rigid Body Shape',
+        name="Shape",
+        description="Choose Rigid Body Shape",
         items=shapes,
-        default='CAPSULE')
+        default="CAPSULE",
+    )
 
     scene.rbg_rc_dim = FloatVectorProperty(
-        name = "Dimensions",
-        description = "rigid body Dimensions XYZ",
-        default = (1, 1, 1),
-        subtype = 'XYZ',
-        unit = 'NONE',
-        min = 0,
-        max = 5)
+        name="Dimensions",
+        description="rigid body Dimensions XYZ",
+        default=(1, 1, 1),
+        subtype="XYZ",
+        unit="NONE",
+        min=0,
+        max=5,
+    )
 
     scene.rbg_rc_mass = FloatProperty(
-        name = "Mass",
-        description = "rigid body mass",
-        default = 1.0,
-        subtype = 'NONE',
-        min = 0.001,)
+        name="Mass",
+        description="rigid body mass",
+        default=1.0,
+        subtype="NONE",
+        min=0.001,
+    )
 
     scene.rbg_rc_friction = FloatProperty(
-        name = "Friction",
-        description = "rigid body friction",
-        default = 0.5,
-        subtype = 'NONE',
-        min = 0,
-        max = 1)
+        name="Friction",
+        description="rigid body friction",
+        default=0.5,
+        subtype="NONE",
+        min=0,
+        max=1,
+    )
 
     scene.rbg_rc_bounciness = FloatProperty(
-        name = "Bounciness",
-        description = "rigid body bounciness",
-        default = 0.5,
-        subtype = 'NONE',
-        min = 0,
-        max = 1)
+        name="Bounciness",
+        description="rigid body bounciness",
+        default=0.5,
+        subtype="NONE",
+        min=0,
+        max=1,
+    )
 
     scene.rbg_rc_translation = FloatProperty(
-        name = "Translation",
-        description = "rigid body translation",
-        default = 0.5,
-        subtype = 'NONE',
-        min = 0,
-        max = 1)
+        name="Translation",
+        description="rigid body translation",
+        default=0.5,
+        subtype="NONE",
+        min=0,
+        max=1,
+    )
 
     scene.rbg_rc_rotation = FloatProperty(
-        name = "Rotation",
-        description = "rigid body rotation",
-        default = 0.5,
-        subtype = 'NONE',
-        min = 0,
-        max = 1)
-
+        name="Rotation",
+        description="rigid body rotation",
+        default=0.5,
+        subtype="NONE",
+        min=0,
+        max=1,
+    )
 
     scene.rbg_jo_type = EnumProperty(
-        name='Type',
-        description='Choose Contstraint Type',
+        name="Type",
+        description="Choose Contstraint Type",
         items=types,
-        default='GENERIC_SPRING')
+        default="GENERIC_SPRING",
+    )
 
     scene.rbg_jo_dim = FloatVectorProperty(
-        name = "joint Dimensions",
-        description = "joint Dimensions XYZ",
-        default = (1, 1, 1),
-        subtype = 'XYZ',
-        unit = 'NONE',
-        min = 0,
-        max = 5)
+        name="joint Dimensions",
+        description="joint Dimensions XYZ",
+        default=(1, 1, 1),
+        subtype="XYZ",
+        unit="NONE",
+        min=0,
+        max=5,
+    )
 
     scene.rbg_jo_limit_lin_x = BoolProperty(
-        name='X Axis',
-        description='limit x',
-        default=True,
-        options={'ANIMATABLE'})
+        name="X Axis", description="limit x", default=True, options={"ANIMATABLE"}
+    )
 
     scene.rbg_jo_limit_lin_y = BoolProperty(
-        name='Y Axis',
-        description='limit y',
-        default=True)
+        name="Y Axis", description="limit y", default=True
+    )
 
     scene.rbg_jo_limit_lin_z = BoolProperty(
-        name='Z Axis',
-        description='limit z',
-        default=True)
+        name="Z Axis", description="limit z", default=True
+    )
 
     scene.rbg_jo_limit_lin_x_lower = FloatProperty(
-        name = "Lower",
-        description = "joint limit_lin_x_lower",
-        default = 0,
-        subtype = 'NONE')
+        name="Lower", description="joint limit_lin_x_lower", default=0, subtype="NONE"
+    )
 
     scene.rbg_jo_limit_lin_y_lower = FloatProperty(
-        name = "Lower",
-        description = "joint limit_lin_y_lower",
-        default = 0,
-        subtype = 'NONE')
+        name="Lower", description="joint limit_lin_y_lower", default=0, subtype="NONE"
+    )
 
     scene.rbg_jo_limit_lin_z_lower = FloatProperty(
-        name = "Lower",
-        description = "joint limit_lin_z_lower",
-        default = 0,
-        subtype = 'NONE')
+        name="Lower", description="joint limit_lin_z_lower", default=0, subtype="NONE"
+    )
 
     scene.rbg_jo_limit_lin_x_upper = FloatProperty(
-        name = "Upper",
-        description = "joint limit_lin_x_upper",
-        default = 0,
-        subtype = 'NONE')
+        name="Upper", description="joint limit_lin_x_upper", default=0, subtype="NONE"
+    )
 
     scene.rbg_jo_limit_lin_y_upper = FloatProperty(
-        name = "Upper",
-        description = "joint limit_lin_y_upper",
-        default = 0,
-        subtype = 'NONE')
+        name="Upper", description="joint limit_lin_y_upper", default=0, subtype="NONE"
+    )
 
     scene.rbg_jo_limit_lin_z_upper = FloatProperty(
-        name = "Upper",
-        description = "joint limit_lin_z_upper",
-        default = 0,
-        subtype = 'NONE')
+        name="Upper", description="joint limit_lin_z_upper", default=0, subtype="NONE"
+    )
 
     scene.rbg_jo_limit_ang_x = BoolProperty(
-        name='X Angle',
-        description='Angle limit x',
+        name="X Angle",
+        description="Angle limit x",
         default=True,
-        options={'ANIMATABLE'})
+        options={"ANIMATABLE"},
+    )
 
     scene.rbg_jo_limit_ang_y = BoolProperty(
-        name='Y Angle',
-        description='Angle limit y',
-        default=True)
+        name="Y Angle", description="Angle limit y", default=True
+    )
 
     scene.rbg_jo_limit_ang_z = BoolProperty(
-        name='Z Angle',
-        description='Angle limit z',
-        default=True)
+        name="Z Angle", description="Angle limit z", default=True
+    )
 
     scene.rbg_jo_limit_ang_x_lower = FloatProperty(
-        name = "Lower",
-        description = "joint limit_ang_x_lower",
-        default = -0.785398,
-        subtype = 'ANGLE')
+        name="Lower",
+        description="joint limit_ang_x_lower",
+        default=-0.785398,
+        subtype="ANGLE",
+    )
 
     scene.rbg_jo_limit_ang_y_lower = FloatProperty(
-        name = "Lower",
-        description = "joint limit_ang_y_lower",
-        default = -0.785398,
-        subtype = 'ANGLE')
+        name="Lower",
+        description="joint limit_ang_y_lower",
+        default=-0.785398,
+        subtype="ANGLE",
+    )
 
     scene.rbg_jo_limit_ang_z_lower = FloatProperty(
-        name = "Lower",
-        description = "joint limit_ang_z_lower",
-        default = -0.785398,
-        subtype = 'ANGLE')
+        name="Lower",
+        description="joint limit_ang_z_lower",
+        default=-0.785398,
+        subtype="ANGLE",
+    )
 
     scene.rbg_jo_limit_ang_x_upper = FloatProperty(
-        name = "Upper",
-        description = "joint limit_ang_x_upper",
-        default = 0.785398,
-        subtype = 'ANGLE')
+        name="Upper",
+        description="joint limit_ang_x_upper",
+        default=0.785398,
+        subtype="ANGLE",
+    )
 
     scene.rbg_jo_limit_ang_y_upper = FloatProperty(
-        name = "Upper",
-        description = "joint limit_ang_y_upper",
-        default = 0.785398,
-        subtype = 'ANGLE')
+        name="Upper",
+        description="joint limit_ang_y_upper",
+        default=0.785398,
+        subtype="ANGLE",
+    )
 
     scene.rbg_jo_limit_ang_z_upper = FloatProperty(
-        name = "Upper",
-        description = "joint limit_ang_z_upper",
-        default = 0.785398,
-        subtype = 'ANGLE')
-
+        name="Upper",
+        description="joint limit_ang_z_upper",
+        default=0.785398,
+        subtype="ANGLE",
+    )
 
     scene.rbg_jo_use_spring_x = BoolProperty(
-        name='X',
-        description='use spring x',
-        default=False)
+        name="X", description="use spring x", default=False
+    )
 
     scene.rbg_jo_use_spring_y = BoolProperty(
-        name='Y',
-        description='use spring y',
-        default=False)
+        name="Y", description="use spring y", default=False
+    )
 
     scene.rbg_jo_use_spring_z = BoolProperty(
-        name='Z',
-        description='use spring z',
-        default=False)
+        name="Z", description="use spring z", default=False
+    )
 
     scene.rbg_jo_spring_stiffness_x = FloatProperty(
-        name = "Stiffness",
-        description = "Stiffness on the X Axis",
-        default = 10.000,
-        subtype = 'NONE',
-        min = 0)
+        name="Stiffness",
+        description="Stiffness on the X Axis",
+        default=10.000,
+        subtype="NONE",
+        min=0,
+    )
 
     scene.rbg_jo_spring_stiffness_y = FloatProperty(
-        name = "Stiffness",
-        description = "Stiffness on the Y Axis",
-        default = 10.000,
-        subtype = 'NONE',
-        min = 0)
+        name="Stiffness",
+        description="Stiffness on the Y Axis",
+        default=10.000,
+        subtype="NONE",
+        min=0,
+    )
 
     scene.rbg_jo_spring_stiffness_z = FloatProperty(
-        name = "Stiffness",
-        description = "Stiffness on the Z Axis",
-        default = 10.000,
-        subtype = 'NONE',
-        min = 0)
+        name="Stiffness",
+        description="Stiffness on the Z Axis",
+        default=10.000,
+        subtype="NONE",
+        min=0,
+    )
 
     scene.rbg_jo_spring_damping_x = FloatProperty(
-        name = "Damping X",
-        description = "Damping on the X Axis",
-        default = 0.5,
-        subtype = 'NONE',
-        min = 0,
-        max = 1)
+        name="Damping X",
+        description="Damping on the X Axis",
+        default=0.5,
+        subtype="NONE",
+        min=0,
+        max=1,
+    )
 
     scene.rbg_jo_spring_damping_y = FloatProperty(
-        name = "Damping Y",
-        description = "Damping on the Y Axis",
-        default = 0.5,
-        subtype = 'NONE',
-        min = 0,
-        max = 1)
+        name="Damping Y",
+        description="Damping on the Y Axis",
+        default=0.5,
+        subtype="NONE",
+        min=0,
+        max=1,
+    )
 
     scene.rbg_jo_spring_damping_z = FloatProperty(
-        name = "Damping Z",
-        description = "Damping on the Z Axis",
-        default = 0.5,
-        subtype = 'NONE',
-        min = 0,
-        max = 1)
-
+        name="Damping Z",
+        description="Damping on the Z Axis",
+        default=0.5,
+        subtype="NONE",
+        min=0,
+        max=1,
+    )
 
     scene.rbg_jo_constraint_object = BoolProperty(
-        name='Auto Constraint Object',
-        description='Constraint Object',
-        default=True)
+        name="Auto Constraint Object", description="Constraint Object", default=True
+    )
 
     scene.rbg_rc_rootbody_passive = BoolProperty(
-        name='Passive',
-        description='Rigid Body Type Passive',
-        default=True)
+        name="Passive", description="Rigid Body Type Passive", default=True
+    )
 
     scene.rbg_rc_add_pole_rootbody = BoolProperty(
-        name='Add Pole Object',
-        description='Add Pole Object',
-        default=True)
+        name="Add Pole Object", description="Add Pole Object", default=True
+    )
 
     scene.rbg_rc_rootbody_animated = BoolProperty(
-        name='animated',
-        description='Root Rigid Body sets animated',
-        default=True)
+        name="animated", description="Root Rigid Body sets animated", default=True
+    )
 
     scene.rbg_rc_parent_armature = BoolProperty(
-        name='Parent to armature',
-        description='Parent to armature',
-        default=True)
+        name="Parent to armature", description="Parent to armature", default=True
+    )
+
 
 def del_props():
     scene = bpy.types.Scene
@@ -624,12 +639,11 @@ class RBG_OT_CreateRigidBodysOnBones(bpy.types.Operator):
     bl_idname = "rigidbody.on_bones"
     bl_label = "Add Passive(on bones)"
     bl_description = "make rigibodys move on bones"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     init_rc_dimX = 0.28
     init_rc_dimY = 0.28
     init_rc_dimZ = 1.30
-
 
     ###
     def execute(self, context):
@@ -638,7 +652,7 @@ class RBG_OT_CreateRigidBodysOnBones(bpy.types.Operator):
 
         ###selected Armature
         ob = bpy.context.active_object
-        newCollectionName = 'RBGcollection.' + ob.name
+        newCollectionName = "RBGcollection." + ob.name
 
         ### Apply Object transform
         bpy.ops.object.posemode_toggle()
@@ -650,15 +664,21 @@ class RBG_OT_CreateRigidBodysOnBones(bpy.types.Operator):
             newcollection = bpy.data.collections.new(newCollectionName)
             bpy.context.scene.collection.children.link(newcollection)
 
-
         if len(bpy.context.selected_pose_bones) == 0:
-            return {'FINISHED'}
+            return {"FINISHED"}
 
         for selected_bones in bpy.context.selected_pose_bones:
-            #self.report({'INFO'}, str(selected_bones.vector[0]))
+            # self.report({'INFO'}, str(selected_bones.vector[0]))
 
             ###Create Rigidbody Cube
-            bpy.ops.mesh.primitive_cube_add(size=1.0, calc_uvs=False, enter_editmode=False, align='WORLD', location=selected_bones.center, rotation=(0.0, 0.0, 0.0))
+            bpy.ops.mesh.primitive_cube_add(
+                size=1.0,
+                calc_uvs=False,
+                enter_editmode=False,
+                align="WORLD",
+                location=selected_bones.center,
+                rotation=(0.0, 0.0, 0.0),
+            )
             rc = bpy.context.active_object
             rc.name = "rbg." + selected_bones.name
             viewport_display(self, rc)
@@ -669,12 +689,12 @@ class RBG_OT_CreateRigidBodysOnBones(bpy.types.Operator):
             bpy.data.collections[newCollectionName].objects.link(rc)
 
             ###Damped Track
-            bpy.ops.object.constraint_add(type='DAMPED_TRACK')
+            bpy.ops.object.constraint_add(type="DAMPED_TRACK")
             dt = bpy.context.object.constraints["Damped Track"]
             dt.target = ob
             dt.subtarget = selected_bones.name
             dt.head_tail = 1
-            dt.track_axis = 'TRACK_Z'
+            dt.track_axis = "TRACK_Z"
 
             ### Apply Tranceform
             bpy.ops.object.visual_transform_apply()
@@ -684,7 +704,8 @@ class RBG_OT_CreateRigidBodysOnBones(bpy.types.Operator):
             bpy.context.object.dimensions = [
                 selected_bones.length * self.init_rc_dimX * scene.rbg_rc_dim[0],
                 selected_bones.length * self.init_rc_dimY * scene.rbg_rc_dim[1],
-                selected_bones.length * self.init_rc_dimZ * scene.rbg_rc_dim[2]]
+                selected_bones.length * self.init_rc_dimZ * scene.rbg_rc_dim[2],
+            ]
 
             ### Scale Apply
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -692,7 +713,7 @@ class RBG_OT_CreateRigidBodysOnBones(bpy.types.Operator):
             ### Set Rigid Body
             bpy.ops.rigidbody.object_add()
 
-            if scene.rbg_rc_rootbody_passive == True:
+            if scene.rbg_rc_rootbody_passive is True:
                 bpy.context.object.rigid_body.type = "PASSIVE"
             else:
                 bpy.context.object.rigid_body.type = "ACTIVE"
@@ -705,33 +726,33 @@ class RBG_OT_CreateRigidBodysOnBones(bpy.types.Operator):
             bpy.context.object.rigid_body.linear_damping = scene.rbg_rc_translation
             bpy.context.object.rigid_body.angular_damping = scene.rbg_rc_rotation
 
-
             ### Child OF
             CoC = rc.constraints.new("CHILD_OF")
-            CoC.name = 'Child_Of_' + selected_bones.name
+            CoC.name = "Child_Of_" + selected_bones.name
             CoC.target = ob
             CoC.subtarget = selected_bones.name
 
-            #without ops way to childof_set_inverse
+            # without ops way to childof_set_inverse
             sub_target = bpy.data.objects[ob.name].pose.bones[selected_bones.name]
-            #self.report({'INFO'}, str(sub_target))
+            # self.report({'INFO'}, str(sub_target))
             CoC.inverse_matrix = sub_target.matrix.inverted()
-            rc.update_tag(refresh={'OBJECT'})
+            rc.update_tag(refresh={"OBJECT"})
             bpy.context.scene.update_tag()
 
-            #parent to armature
+            # parent to armature
             if scene.rbg_rc_parent_armature == True:
                 rc.parent = ob
 
         ###clear object select
         bpy.context.view_layer.objects.active = ob
         bpy.ops.object.posemode_toggle()
-        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action="DESELECT")
         bpy.ops.object.posemode_toggle()
-        bpy.ops.pose.select_all(action='DESELECT')
+        bpy.ops.pose.select_all(action="DESELECT")
 
-        self.report({'INFO'}, "OK")
-        return {'FINISHED'}
+        self.report({"INFO"}, "OK")
+        return {"FINISHED"}
+
 
 #
 class RBG_OT_CreateRigidBodysPhysics(bpy.types.Operator):
@@ -739,12 +760,11 @@ class RBG_OT_CreateRigidBodysPhysics(bpy.types.Operator):
     bl_idname = "rigidbody.physics"
     bl_label = "Add Active"
     bl_description = "make physics engine on rigibodys"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     init_rc_dimX = 0.28
     init_rc_dimY = 0.28
     init_rc_dimZ = 1.30
-
 
     ###
     def execute(self, context):
@@ -752,7 +772,7 @@ class RBG_OT_CreateRigidBodysPhysics(bpy.types.Operator):
         scene = context.scene
         ###selected Armature
         ob = bpy.context.active_object
-        #self.report({'INFO'}, ob.data)
+        # self.report({'INFO'}, ob.data)
 
         ### Apply Object transform
         bpy.ops.object.posemode_toggle()
@@ -762,7 +782,14 @@ class RBG_OT_CreateRigidBodysPhysics(bpy.types.Operator):
         for selected_bones in bpy.context.selected_pose_bones:
 
             ###Create Rigidbody Cube
-            bpy.ops.mesh.primitive_cube_add(size=1.0, calc_uvs=False, enter_editmode=False, align='WORLD', location=selected_bones.center, rotation=(0.0, 0.0, 0.0))
+            bpy.ops.mesh.primitive_cube_add(
+                size=1.0,
+                calc_uvs=False,
+                enter_editmode=False,
+                align="WORLD",
+                location=selected_bones.center,
+                rotation=(0.0, 0.0, 0.0),
+            )
             rc = bpy.context.active_object
             rc.name = "rbg." + selected_bones.name
             viewport_display(self, rc)
@@ -770,12 +797,12 @@ class RBG_OT_CreateRigidBodysPhysics(bpy.types.Operator):
             bpy.data.objects[rc.name].hide_render = True
 
             ###Damped Track
-            bpy.ops.object.constraint_add(type='DAMPED_TRACK')
+            bpy.ops.object.constraint_add(type="DAMPED_TRACK")
             dt = bpy.context.object.constraints["Damped Track"]
             dt.target = ob
             dt.subtarget = selected_bones.name
             dt.head_tail = 1
-            dt.track_axis = 'TRACK_Z'
+            dt.track_axis = "TRACK_Z"
 
             ### Apply Tranceform
             bpy.ops.object.visual_transform_apply()
@@ -785,7 +812,8 @@ class RBG_OT_CreateRigidBodysPhysics(bpy.types.Operator):
             bpy.context.object.dimensions = [
                 selected_bones.length * self.init_rc_dimX * scene.rbg_rc_dim[0],
                 selected_bones.length * self.init_rc_dimY * scene.rbg_rc_dim[1],
-                selected_bones.length * self.init_rc_dimZ * scene.rbg_rc_dim[2]]
+                selected_bones.length * self.init_rc_dimZ * scene.rbg_rc_dim[2],
+            ]
 
             ### Scale Apply
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -805,20 +833,21 @@ class RBG_OT_CreateRigidBodysPhysics(bpy.types.Operator):
             ### Child OF
             bpy.context.view_layer.objects.active = ob
             bpy.ops.pose.armature_apply()
-            bpy.ops.pose.select_all(action='DESELECT')
-            bpy.context.object.data.bones.active = bpy.context.object.data.bones[selected_bones.name]
+            bpy.ops.pose.select_all(action="DESELECT")
+            bpy.context.object.data.bones.active = bpy.context.object.data.bones[
+                selected_bones.name
+            ]
             ab = bpy.context.active_pose_bone
 
-
             CoC = ab.constraints.new("CHILD_OF")
-            CoC.name = 'Child_Of_' + rc.name
+            CoC.name = "Child_Of_" + rc.name
             CoC.target = rc
 
-            #without ops way to childof_set_inverse
+            # without ops way to childof_set_inverse
             CoC_target = rc
-            #self.report({'INFO'}, str(rc))
+            # self.report({'INFO'}, str(rc))
             CoC.inverse_matrix = CoC_target.matrix_world.inverted()
-            rc.update_tag(refresh={'OBJECT'})
+            rc.update_tag(refresh={"OBJECT"})
             bpy.context.scene.update_tag()
 
             ###parent none
@@ -826,19 +855,20 @@ class RBG_OT_CreateRigidBodysPhysics(bpy.types.Operator):
             bpy.context.active_bone.parent = None
             bpy.ops.object.posemode_toggle()
 
-            #parent to armature
+            # parent to armature
             if scene.rbg_rc_parent_armature == True:
                 rc.parent = ob
 
         ###clear object select
         bpy.context.view_layer.objects.active = ob
         bpy.ops.object.posemode_toggle()
-        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action="DESELECT")
         bpy.ops.object.posemode_toggle()
-        bpy.ops.pose.select_all(action='DESELECT')
+        bpy.ops.pose.select_all(action="DESELECT")
 
-        self.report({'INFO'}, "OK")
-        return {'FINISHED'}
+        self.report({"INFO"}, "OK")
+        return {"FINISHED"}
+
 
 #
 class RBG_OT_CreateRigidBodysJoints(bpy.types.Operator):
@@ -846,12 +876,11 @@ class RBG_OT_CreateRigidBodysJoints(bpy.types.Operator):
     bl_idname = "rigidbody.joints"
     bl_label = "Add Joints"
     bl_description = "add Add Joints on bones"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     init_rbg_jo_dimX = 0.33
     init_rbg_jo_dimY = 0.33
     init_rbg_jo_dimZ = 0.33
-
 
     ###
     def execute(self, context):
@@ -868,12 +897,17 @@ class RBG_OT_CreateRigidBodysJoints(bpy.types.Operator):
         bpy.ops.object.posemode_toggle()
 
         for selected_bones in bpy.context.selected_pose_bones:
-            #self.report({'INFO'}, str(selected_bones.vector[0]))
+            # self.report({'INFO'}, str(selected_bones.vector[0]))
 
             ###Create Rigidbody Cube
             # bpy.ops.mesh.primitive_cube_add(size=1.0, calc_uvs=False, enter_editmode=False, align='WORLD', location=selected_bones.head, rotation=(0.0, 0.0, 0.0))
             bpy.ops.object.posemode_toggle()
-            bpy.ops.object.empty_add(type='PLAIN_AXES', radius=0.1, align='WORLD', location=selected_bones.head)
+            bpy.ops.object.empty_add(
+                type="PLAIN_AXES",
+                radius=0.1,
+                align="WORLD",
+                location=selected_bones.head,
+            )
             rc = bpy.context.active_object
             rc.name = "joint." + selected_bones.name
             viewport_display(self, rc)
@@ -884,7 +918,8 @@ class RBG_OT_CreateRigidBodysJoints(bpy.types.Operator):
             bpy.context.object.dimensions = [
                 selected_bones.length * self.init_rbg_jo_dimX * scene.rbg_jo_dim[0],
                 selected_bones.length * self.init_rbg_jo_dimY * scene.rbg_jo_dim[1],
-                selected_bones.length * self.init_rbg_jo_dimZ * scene.rbg_jo_dim[2]]
+                selected_bones.length * self.init_rbg_jo_dimZ * scene.rbg_jo_dim[2],
+            ]
 
             ### Scale Apply
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -893,61 +928,117 @@ class RBG_OT_CreateRigidBodysJoints(bpy.types.Operator):
             bpy.ops.rigidbody.constraint_add()
             bpy.context.object.rigid_body_constraint.type = scene.rbg_jo_type
             bpy.context.object.rigid_body_constraint.use_breaking = False
-            bpy.context.object.rigid_body_constraint.use_override_solver_iterations = True
+            bpy.context.object.rigid_body_constraint.use_override_solver_iterations = (
+                True
+            )
             bpy.context.object.rigid_body_constraint.breaking_threshold = 10
             bpy.context.object.rigid_body_constraint.solver_iterations = 10
 
-            bpy.context.object.rigid_body_constraint.use_limit_lin_x = scene.rbg_jo_limit_lin_x
-            bpy.context.object.rigid_body_constraint.use_limit_lin_y = scene.rbg_jo_limit_lin_y
-            bpy.context.object.rigid_body_constraint.use_limit_lin_z = scene.rbg_jo_limit_lin_z
-            bpy.context.object.rigid_body_constraint.limit_lin_x_lower = scene.rbg_jo_limit_lin_x_lower
-            bpy.context.object.rigid_body_constraint.limit_lin_y_lower = scene.rbg_jo_limit_lin_y_lower
-            bpy.context.object.rigid_body_constraint.limit_lin_z_lower = scene.rbg_jo_limit_lin_z_lower
-            bpy.context.object.rigid_body_constraint.limit_lin_x_upper = scene.rbg_jo_limit_lin_x_upper
-            bpy.context.object.rigid_body_constraint.limit_lin_y_upper = scene.rbg_jo_limit_lin_y_upper
-            bpy.context.object.rigid_body_constraint.limit_lin_z_upper = scene.rbg_jo_limit_lin_z_upper
+            bpy.context.object.rigid_body_constraint.use_limit_lin_x = (
+                scene.rbg_jo_limit_lin_x
+            )
+            bpy.context.object.rigid_body_constraint.use_limit_lin_y = (
+                scene.rbg_jo_limit_lin_y
+            )
+            bpy.context.object.rigid_body_constraint.use_limit_lin_z = (
+                scene.rbg_jo_limit_lin_z
+            )
+            bpy.context.object.rigid_body_constraint.limit_lin_x_lower = (
+                scene.rbg_jo_limit_lin_x_lower
+            )
+            bpy.context.object.rigid_body_constraint.limit_lin_y_lower = (
+                scene.rbg_jo_limit_lin_y_lower
+            )
+            bpy.context.object.rigid_body_constraint.limit_lin_z_lower = (
+                scene.rbg_jo_limit_lin_z_lower
+            )
+            bpy.context.object.rigid_body_constraint.limit_lin_x_upper = (
+                scene.rbg_jo_limit_lin_x_upper
+            )
+            bpy.context.object.rigid_body_constraint.limit_lin_y_upper = (
+                scene.rbg_jo_limit_lin_y_upper
+            )
+            bpy.context.object.rigid_body_constraint.limit_lin_z_upper = (
+                scene.rbg_jo_limit_lin_z_upper
+            )
 
-            bpy.context.object.rigid_body_constraint.use_limit_ang_x = scene.rbg_jo_limit_ang_x
-            bpy.context.object.rigid_body_constraint.use_limit_ang_y = scene.rbg_jo_limit_ang_y
-            bpy.context.object.rigid_body_constraint.use_limit_ang_z = scene.rbg_jo_limit_ang_z
-            bpy.context.object.rigid_body_constraint.limit_ang_x_lower = scene.rbg_jo_limit_ang_x_lower
-            bpy.context.object.rigid_body_constraint.limit_ang_y_lower = scene.rbg_jo_limit_ang_y_lower
-            bpy.context.object.rigid_body_constraint.limit_ang_z_lower = scene.rbg_jo_limit_ang_z_lower
-            bpy.context.object.rigid_body_constraint.limit_ang_x_upper = scene.rbg_jo_limit_ang_x_upper
-            bpy.context.object.rigid_body_constraint.limit_ang_y_upper = scene.rbg_jo_limit_ang_y_upper
-            bpy.context.object.rigid_body_constraint.limit_ang_z_upper = scene.rbg_jo_limit_ang_z_upper
+            bpy.context.object.rigid_body_constraint.use_limit_ang_x = (
+                scene.rbg_jo_limit_ang_x
+            )
+            bpy.context.object.rigid_body_constraint.use_limit_ang_y = (
+                scene.rbg_jo_limit_ang_y
+            )
+            bpy.context.object.rigid_body_constraint.use_limit_ang_z = (
+                scene.rbg_jo_limit_ang_z
+            )
+            bpy.context.object.rigid_body_constraint.limit_ang_x_lower = (
+                scene.rbg_jo_limit_ang_x_lower
+            )
+            bpy.context.object.rigid_body_constraint.limit_ang_y_lower = (
+                scene.rbg_jo_limit_ang_y_lower
+            )
+            bpy.context.object.rigid_body_constraint.limit_ang_z_lower = (
+                scene.rbg_jo_limit_ang_z_lower
+            )
+            bpy.context.object.rigid_body_constraint.limit_ang_x_upper = (
+                scene.rbg_jo_limit_ang_x_upper
+            )
+            bpy.context.object.rigid_body_constraint.limit_ang_y_upper = (
+                scene.rbg_jo_limit_ang_y_upper
+            )
+            bpy.context.object.rigid_body_constraint.limit_ang_z_upper = (
+                scene.rbg_jo_limit_ang_z_upper
+            )
 
-            bpy.context.object.rigid_body_constraint.use_spring_x = scene.rbg_jo_use_spring_x
-            bpy.context.object.rigid_body_constraint.use_spring_y = scene.rbg_jo_use_spring_y
-            bpy.context.object.rigid_body_constraint.use_spring_z = scene.rbg_jo_use_spring_z
-            bpy.context.object.rigid_body_constraint.spring_stiffness_x = scene.rbg_jo_spring_stiffness_x
-            bpy.context.object.rigid_body_constraint.spring_stiffness_y = scene.rbg_jo_spring_stiffness_y
-            bpy.context.object.rigid_body_constraint.spring_stiffness_z = scene.rbg_jo_spring_stiffness_z
-            bpy.context.object.rigid_body_constraint.spring_damping_x = scene.rbg_jo_spring_damping_x
-            bpy.context.object.rigid_body_constraint.spring_damping_y = scene.rbg_jo_spring_damping_y
-            bpy.context.object.rigid_body_constraint.spring_damping_z = scene.rbg_jo_spring_damping_z
+            bpy.context.object.rigid_body_constraint.use_spring_x = (
+                scene.rbg_jo_use_spring_x
+            )
+            bpy.context.object.rigid_body_constraint.use_spring_y = (
+                scene.rbg_jo_use_spring_y
+            )
+            bpy.context.object.rigid_body_constraint.use_spring_z = (
+                scene.rbg_jo_use_spring_z
+            )
+            bpy.context.object.rigid_body_constraint.spring_stiffness_x = (
+                scene.rbg_jo_spring_stiffness_x
+            )
+            bpy.context.object.rigid_body_constraint.spring_stiffness_y = (
+                scene.rbg_jo_spring_stiffness_y
+            )
+            bpy.context.object.rigid_body_constraint.spring_stiffness_z = (
+                scene.rbg_jo_spring_stiffness_z
+            )
+            bpy.context.object.rigid_body_constraint.spring_damping_x = (
+                scene.rbg_jo_spring_damping_x
+            )
+            bpy.context.object.rigid_body_constraint.spring_damping_y = (
+                scene.rbg_jo_spring_damping_y
+            )
+            bpy.context.object.rigid_body_constraint.spring_damping_z = (
+                scene.rbg_jo_spring_damping_z
+            )
 
-            #parent to armature
+            # parent to armature
             if scene.rbg_rc_parent_armature == True:
                 rc.parent = ob
 
         ###clear object select
         bpy.context.view_layer.objects.active = ob
         # bpy.ops.object.posemode_toggle()
-        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action="DESELECT")
         bpy.ops.object.posemode_toggle()
-        bpy.ops.pose.select_all(action='DESELECT')
+        bpy.ops.pose.select_all(action="DESELECT")
 
-        self.report({'INFO'}, "OK")
-        return {'FINISHED'}
+        self.report({"INFO"}, "OK")
+        return {"FINISHED"}
+
 
 class RBG_OT_CreateRigidBodysPhysicsJoints(bpy.types.Operator):
 
     bl_idname = "rigidbody.physics_joints"
     bl_label = "Add Active & Joints"
     bl_description = "Add Active & Joints"
-    bl_options = {'REGISTER', 'UNDO'}
-
+    bl_options = {"REGISTER", "UNDO"}
 
     init_rc_dimX = 0.28
     init_rc_dimY = 0.28
@@ -965,7 +1056,7 @@ class RBG_OT_CreateRigidBodysPhysicsJoints(bpy.types.Operator):
 
         ###selected Armature
         ob = bpy.context.active_object
-#        self.report({'INFO'}, "ob:" + str(ob))
+        #        self.report({'INFO'}, "ob:" + str(ob))
 
         ### Apply Object transform
         bpy.ops.object.posemode_toggle()
@@ -980,22 +1071,27 @@ class RBG_OT_CreateRigidBodysPhysicsJoints(bpy.types.Operator):
 
         spb = bpy.context.selected_pose_bones
         tot = len(spb)
-#        wm.progress_begin(0, tot)
+        #        wm.progress_begin(0, tot)
         i = 0
 
-#        self.report({'INFO'}, "pole_dict:" + str(pole_dict))
+        #        self.report({'INFO'}, "pole_dict:" + str(pole_dict))
 
         for selected_bones in spb:
-            #self.report({'INFO'}, str(selected_bones.vector[0]))
+            # self.report({'INFO'}, str(selected_bones.vector[0]))
 
             i += 1
-#            wm.progress_update(i)
+            #            wm.progress_update(i)
 
             ###Joint Session
             ###Create Rigidbody Cube
             # bpy.ops.mesh.primitive_cube_add(size=1.0, calc_uvs=False, enter_editmode=False, align='WORLD', location=selected_bones.head, rotation=(0.0, 0.0, 0.0))
             bpy.ops.object.posemode_toggle()
-            bpy.ops.object.empty_add(type='PLAIN_AXES', radius=0.1, align='WORLD', location=selected_bones.head)
+            bpy.ops.object.empty_add(
+                type="PLAIN_AXES",
+                radius=0.1,
+                align="WORLD",
+                location=selected_bones.head,
+            )
             jc = bpy.context.active_object
             jc.name = "joint." + ob.name + "." + selected_bones.name
             viewport_display(self, jc)
@@ -1006,7 +1102,8 @@ class RBG_OT_CreateRigidBodysPhysicsJoints(bpy.types.Operator):
             bpy.context.object.dimensions = [
                 selected_bones.length * self.init_rbg_jo_dimX * scene.rbg_jo_dim[0],
                 selected_bones.length * self.init_rbg_jo_dimY * scene.rbg_jo_dim[1],
-                selected_bones.length * self.init_rbg_jo_dimZ * scene.rbg_jo_dim[2]]
+                selected_bones.length * self.init_rbg_jo_dimZ * scene.rbg_jo_dim[2],
+            ]
 
             ### Scale Apply
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -1042,71 +1139,96 @@ class RBG_OT_CreateRigidBodysPhysicsJoints(bpy.types.Operator):
             jc.rigid_body_constraint.use_spring_x = scene.rbg_jo_use_spring_x
             jc.rigid_body_constraint.use_spring_y = scene.rbg_jo_use_spring_y
             jc.rigid_body_constraint.use_spring_z = scene.rbg_jo_use_spring_z
-            jc.rigid_body_constraint.spring_stiffness_x = scene.rbg_jo_spring_stiffness_x
-            jc.rigid_body_constraint.spring_stiffness_y = scene.rbg_jo_spring_stiffness_y
-            jc.rigid_body_constraint.spring_stiffness_z = scene.rbg_jo_spring_stiffness_z
+            jc.rigid_body_constraint.spring_stiffness_x = (
+                scene.rbg_jo_spring_stiffness_x
+            )
+            jc.rigid_body_constraint.spring_stiffness_y = (
+                scene.rbg_jo_spring_stiffness_y
+            )
+            jc.rigid_body_constraint.spring_stiffness_z = (
+                scene.rbg_jo_spring_stiffness_z
+            )
             jc.rigid_body_constraint.spring_damping_x = scene.rbg_jo_spring_damping_x
             jc.rigid_body_constraint.spring_damping_y = scene.rbg_jo_spring_damping_y
             jc.rigid_body_constraint.spring_damping_z = scene.rbg_jo_spring_damping_z
 
-#            self.report({'INFO'}, "selected_bones.parent:" + str(selected_bones.parent))
-            if selected_bones.parent is not None and selected_bones.parent not in spb and selected_bones.parent not in pole_dict and scene.rbg_rc_add_pole_rootbody == True:
+            #            self.report({'INFO'}, "selected_bones.parent:" + str(selected_bones.parent))
+            if (
+                selected_bones.parent is not None
+                and selected_bones.parent not in spb
+                and selected_bones.parent not in pole_dict
+                and scene.rbg_rc_add_pole_rootbody == True
+            ):
 
-                    ###Create Rigidbody Cube
-                    bpy.ops.mesh.primitive_cube_add(size=1.0, calc_uvs=False, enter_editmode=False, align='WORLD', location=selected_bones.parent.center, rotation=(0.0, 0.0, 0.0))
-                    rc2 = bpy.context.active_object
-                    rc2.name = "rbg.pole." + ob.name + "." + selected_bones.parent.name
-                    viewport_display(self, rc2)
-                    rc2.show_in_front = True
-                    rc2.hide_render = True
+                ###Create Rigidbody Cube
+                bpy.ops.mesh.primitive_cube_add(
+                    size=1.0,
+                    calc_uvs=False,
+                    enter_editmode=False,
+                    align="WORLD",
+                    location=selected_bones.parent.center,
+                    rotation=(0.0, 0.0, 0.0),
+                )
+                rc2 = bpy.context.active_object
+                rc2.name = "rbg.pole." + ob.name + "." + selected_bones.parent.name
+                viewport_display(self, rc2)
+                rc2.show_in_front = True
+                rc2.hide_render = True
 
-                    ### Rigid Body Dimensions
-                    bpy.context.object.dimensions = [
-                        selected_bones.parent.length * self.init_rbg_jo_dimX,
-                        selected_bones.parent.length * self.init_rbg_jo_dimY,
-                        selected_bones.parent.length * self.init_rbg_jo_dimZ]
+                ### Rigid Body Dimensions
+                bpy.context.object.dimensions = [
+                    selected_bones.parent.length * self.init_rbg_jo_dimX,
+                    selected_bones.parent.length * self.init_rbg_jo_dimY,
+                    selected_bones.parent.length * self.init_rbg_jo_dimZ,
+                ]
 
-                    ### Scale Apply
-                    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+                ### Scale Apply
+                bpy.ops.object.transform_apply(
+                    location=False, rotation=False, scale=True
+                )
 
-                    ### Set Rigid Body
-                    bpy.ops.rigidbody.object_add()
+                ### Set Rigid Body
+                bpy.ops.rigidbody.object_add()
 
-                    rc2.rigid_body.type = "PASSIVE"
-                    rc2.rigid_body.collision_shape = "BOX"
-                    rc2.rigid_body.kinematic = True
+                rc2.rigid_body.type = "PASSIVE"
+                rc2.rigid_body.collision_shape = "BOX"
+                rc2.rigid_body.kinematic = True
 
-                    ### Child OF
-                    CoC2 = rc2.constraints.new("CHILD_OF")
-                    CoC2.name = 'Child_Of_' + selected_bones.parent.name
-                    CoC2.target = ob
-                    CoC2.subtarget = selected_bones.parent.name
+                ### Child OF
+                CoC2 = rc2.constraints.new("CHILD_OF")
+                CoC2.name = "Child_Of_" + selected_bones.parent.name
+                CoC2.target = ob
+                CoC2.subtarget = selected_bones.parent.name
 
-                    #without ops way to childof_set_inverse
-                    sub_target = bpy.data.objects[ob.name].pose.bones[selected_bones.parent.name]
-                    #self.report({'INFO'}, str(sub_target))
-                    CoC2.inverse_matrix = sub_target.matrix.inverted()
-                    rc2.update_tag(refresh={'OBJECT'})
-                    bpy.context.scene.update_tag()
+                # without ops way to childof_set_inverse
+                sub_target = bpy.data.objects[ob.name].pose.bones[
+                    selected_bones.parent.name
+                ]
+                # self.report({'INFO'}, str(sub_target))
+                CoC2.inverse_matrix = sub_target.matrix.inverted()
+                rc2.update_tag(refresh={"OBJECT"})
+                bpy.context.scene.update_tag()
 
-                    #parent to armature
-                    if scene.rbg_rc_parent_armature == True:
-                        rc2.parent = ob
-
+                # parent to armature
+                if scene.rbg_rc_parent_armature == True:
+                    rc2.parent = ob
 
             ###constraint.object1
 
-            if selected_bones.parent is not None and selected_bones.parent not in spb and scene.rbg_rc_add_pole_rootbody == True:
+            if (
+                selected_bones.parent is not None
+                and selected_bones.parent not in spb
+                and scene.rbg_rc_add_pole_rootbody == True
+            ):
 
                 if selected_bones.parent not in pole_dict:
                     pole_dict[selected_bones.parent] = rc2
-#                    self.report({'INFO'}, "pole_dict:" + str(pole_dict))
+                    # self.report({'INFO'}, "pole_dict:" + str(pole_dict))
                     jc.rigid_body_constraint.object1 = rc2
                     parent_bones_ob = "rbg." + ob.name + "." + selected_bones.name
                 else:
                     jc.rigid_body_constraint.object1 = pole_dict[selected_bones.parent]
                     parent_bones_ob = "rbg." + ob.name + "." + selected_bones.name
-
 
             else:
                 if parent_bones_ob != "":
@@ -1114,18 +1236,23 @@ class RBG_OT_CreateRigidBodysPhysicsJoints(bpy.types.Operator):
 
                 parent_bones_ob = "rbg." + ob.name + "." + selected_bones.name
 
+            # self.report({'INFO'}, "recursive:" + str(selected_bones.children_recursive))
+            # self.report({'INFO'}, "parent_bones_ob:" + str(parent_bones_ob))
 
-            #self.report({'INFO'}, "recursive:" + str(selected_bones.children_recursive))
-            #self.report({'INFO'}, "parent_bones_ob:" + str(parent_bones_ob))
-
-            #parent to armature
+            # parent to armature
             if scene.rbg_rc_parent_armature == True:
                 jc.parent = ob
 
-
             ###Rigid Body Session
             ###Create Rigidbody Cube
-            bpy.ops.mesh.primitive_cube_add(size=1.0, calc_uvs=False, enter_editmode=False, align='WORLD', location=selected_bones.center, rotation=(0.0, 0.0, 0.0))
+            bpy.ops.mesh.primitive_cube_add(
+                size=1.0,
+                calc_uvs=False,
+                enter_editmode=False,
+                align="WORLD",
+                location=selected_bones.center,
+                rotation=(0.0, 0.0, 0.0),
+            )
             rc = bpy.context.active_object
             rc.name = parent_bones_ob
             viewport_display(self, rc)
@@ -1140,12 +1267,12 @@ class RBG_OT_CreateRigidBodysPhysicsJoints(bpy.types.Operator):
                 parent_bones_ob = ""
 
             ###Damped Track
-            bpy.ops.object.constraint_add(type='DAMPED_TRACK')
+            bpy.ops.object.constraint_add(type="DAMPED_TRACK")
             dt = bpy.context.object.constraints["Damped Track"]
             dt.target = ob
             dt.subtarget = selected_bones.name
             dt.head_tail = 1
-            dt.track_axis = 'TRACK_Z'
+            dt.track_axis = "TRACK_Z"
 
             ### Apply Tranceform
             bpy.ops.object.visual_transform_apply()
@@ -1155,7 +1282,8 @@ class RBG_OT_CreateRigidBodysPhysicsJoints(bpy.types.Operator):
             bpy.context.object.dimensions = [
                 selected_bones.length * self.init_rc_dimX * scene.rbg_rc_dim[0],
                 selected_bones.length * self.init_rc_dimY * scene.rbg_rc_dim[1],
-                selected_bones.length * self.init_rc_dimZ * scene.rbg_rc_dim[2]]
+                selected_bones.length * self.init_rc_dimZ * scene.rbg_rc_dim[2],
+            ]
 
             ### Scale Apply
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -1171,29 +1299,30 @@ class RBG_OT_CreateRigidBodysPhysicsJoints(bpy.types.Operator):
             bpy.context.object.rigid_body.linear_damping = scene.rbg_rc_translation
             bpy.context.object.rigid_body.angular_damping = scene.rbg_rc_rotation
 
-
             bpy.ops.object.posemode_toggle()
             ### Child OF
             bpy.context.view_layer.objects.active = ob
             bpy.ops.object.posemode_toggle()
             bpy.ops.pose.armature_apply()
-            #bpy.ops.pose.visual_transform_apply()
-            bpy.ops.pose.select_all(action='DESELECT')
-            bpy.context.object.data.bones.active = bpy.context.object.data.bones[selected_bones.name]
+            # bpy.ops.pose.visual_transform_apply()
+            bpy.ops.pose.select_all(action="DESELECT")
+            bpy.context.object.data.bones.active = bpy.context.object.data.bones[
+                selected_bones.name
+            ]
             ab = bpy.context.active_pose_bone
-            #self.report({'INFO'}, str(rc.name))
+            # self.report({'INFO'}, str(rc.name))
             CoC = ab.constraints.new("CHILD_OF")
-            CoC.name = 'Child_Of_' + rc.name
+            CoC.name = "Child_Of_" + rc.name
             CoC.target = rc
 
-            #without ops way to childof_set_inverse
+            # without ops way to childof_set_inverse
             CoC_target = rc
-            #self.report({'INFO'}, str(rc))
+            # self.report({'INFO'}, str(rc))
             CoC.inverse_matrix = CoC_target.matrix_world.inverted()
-            rc.update_tag(refresh={'OBJECT'})
+            rc.update_tag(refresh={"OBJECT"})
             bpy.context.scene.update_tag()
 
-            #parent to armature
+            # parent to armature
             if scene.rbg_rc_parent_armature == True:
                 rc.parent = ob
 
@@ -1201,43 +1330,47 @@ class RBG_OT_CreateRigidBodysPhysicsJoints(bpy.types.Operator):
             bpy.ops.object.editmode_toggle()
             bpy.context.active_bone.parent = None
             bpy.ops.object.posemode_toggle()
-            
-            update_progress("Rigidbody_gen Progress", i/tot)
+
+            update_progress("Rigidbody_gen Progress", i / tot)
 
         ###clear object select
         bpy.context.view_layer.objects.active = ob
         bpy.ops.object.posemode_toggle()
-        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action="DESELECT")
         bpy.ops.object.posemode_toggle()
-        bpy.ops.pose.select_all(action='DESELECT')
+        bpy.ops.pose.select_all(action="DESELECT")
 
-#        update_progress("Rigidbody_gen:FINISHED", 1)
-#        wm.progress_end()
+        #        update_progress("Rigidbody_gen:FINISHED", 1)
+        #        wm.progress_end()
 
-        self.report({'INFO'}, "FINISHED")
-        return {'FINISHED'}
-
+        self.report({"INFO"}, "FINISHED")
+        return {"FINISHED"}
 
 
 def viewport_display(self, rb):
-        rb.display_type = 'WIRE'
-        rb.show_in_front = True
-        rb.display.show_shadows = False
-        rb.hide_render = True
+    rb.display_type = "WIRE"
+    rb.show_in_front = True
+    rb.display.show_shadows = False
+    rb.hide_render = True
 
 
 def add_RigidBody_World():
-        scene = bpy.context.scene
-        if scene.rigidbody_world is None:
-            bpy.ops.rigidbody.world_add()
+    scene = bpy.context.scene
+    if scene.rigidbody_world is None:
+        bpy.ops.rigidbody.world_add()
+
 
 def update_progress(job_title, progress):
-    length = 20 # modify this to change the length
-    block = int(round(length*progress))
-    msg = "\r{0}: [{1}] {2}%".format(job_title, "#"*block + "-"*(length-block), round(progress*100, 2))
-    if progress >= 1: msg += " DONE\r\n"
+    length = 20  # modify this to change the length
+    block = int(round(length * progress))
+    msg = "\r{0}: [{1}] {2}%".format(
+        job_title, "#" * block + "-" * (length - block), round(progress * 100, 2)
+    )
+    if progress >= 1:
+        msg += " DONE\r\n"
     sys.stdout.write(msg)
     sys.stdout.flush()
+
 
 classes = [
     RBG_PT_MenuRigidBodyTools,
@@ -1249,8 +1382,9 @@ classes = [
     RBG_OT_CreateRigidBodysOnBones,
     RBG_OT_CreateRigidBodysPhysics,
     RBG_OT_CreateRigidBodysJoints,
-    RBG_OT_CreateRigidBodysPhysicsJoints
+    RBG_OT_CreateRigidBodysPhysicsJoints,
 ]
+
 
 # クラスの登録
 def register():
@@ -1258,12 +1392,12 @@ def register():
         bpy.utils.register_class(cls)
     user_props()
 
+
 # クラスの登録解除
 def unregister():
     del_props()
     for cls in classes:
         bpy.utils.unregister_class(cls)
-
 
 
 # main
